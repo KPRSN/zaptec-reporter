@@ -1,0 +1,32 @@
+[project]
+name = "zaptec-reporter"
+version = "0.1.0"
+description = "A tool for generating usage reports from Zaptec installations."
+readme = "README.md"
+authors = [
+    { name = "KPRSN", email = "k.julmust@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "dateparser>=1.2.0",
+    "pandas>=2.2.3",
+    "requests>=2.32.3",
+    "responses>=0.25.3",
+    "xlsxwriter>=3.2.0",
+]
+
+[project.scripts]
+zaptec-reporter = "zaptec_reporter:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.4",
+    "ruff>=0.8.5",
+]
+
+[tool.ruff]
+line-length = 120

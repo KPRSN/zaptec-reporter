@@ -135,7 +135,7 @@ class TestAPI(unittest.TestCase):
                 responses.matchers.json_params_matcher(
                     {
                         "fromDate": "2024-12-01T00:00:00",
-                        "toDate": "2025-01-01T00:00:00",
+                        "endDate": "2025-01-01T00:00:00",
                         "installationId": INSTALLATION_ID,
                         "groupBy": 1,
                     }

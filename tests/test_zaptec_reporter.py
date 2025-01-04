@@ -57,7 +57,7 @@ class TestReporter(unittest.TestCase):
                 responses.matchers.json_params_matcher(
                     {
                         "fromDate": "2024-12-01T00:00:00",
-                        "toDate": "2025-01-01T00:00:00",
+                        "endDate": "2025-01-01T00:00:00",
                         "installationId": INSTALLATION_IDS[0],
                         "groupBy": 1,
                     }
@@ -103,7 +103,7 @@ class TestReporter(unittest.TestCase):
 
         # Trigger request.
         api = zap.api.ZaptecAPI(ACCESS_TOKEN)
-        buffer = zap.generate_usage_report(
+        zap.generate_usage_report(
             api,
             INSTALLATION_IDS,
             datetime.fromisoformat("2024-12-01"),

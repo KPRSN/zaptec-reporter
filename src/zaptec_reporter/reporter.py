@@ -83,9 +83,7 @@ def generate_usage_report(api, installation_ids, date_from, date_to, group_by=za
     return buffer
 
 
-def main() -> None:
-    argv = sys.argv[1:]
-
+def main(argv=sys.argv[1:]) -> None:
     # Setup argument parser.
     parser = argparse.ArgumentParser(description="Generate usage reports from Zaptec chargers.")
     subparsers = parser.add_subparsers(dest="action", help="Action to take.")

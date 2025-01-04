@@ -1,12 +1,9 @@
-import unittest
-
-# from unittest.mock import MagicMock, patch
 import responses
 
 from zaptec_reporter import api as zapi
 
 
-class TestAPI(unittest.TestCase):
+class TestAPI:
     @responses.activate
     def test_authorization(self):
         ACCESS_TOKEN = "blablaiamatokenblablabla"
@@ -35,15 +32,15 @@ class TestAPI(unittest.TestCase):
         api = zapi.ZaptecAPI()
 
         # Make sure there is no access token before initializing.
-        self.assertEqual(None, api.access_token)
-        self.assertEqual(None, api.auth_header())
+        assert api.access_token is None
+        assert api.auth_header() is None
 
         # Trigger authorization request.
         api.authorize(USERNAME, PASSWORD)
 
         # Verify that access token is correctly set.
-        self.assertEqual(ACCESS_TOKEN, api.access_token)
-        self.assertEqual(f"Bearer {ACCESS_TOKEN}", api.auth_header())
+        assert ACCESS_TOKEN == api.access_token
+        assert f"Bearer {ACCESS_TOKEN}" == api.auth_header()
 
     @responses.activate
     def test_installations(self):
@@ -87,9 +84,9 @@ class TestAPI(unittest.TestCase):
         installations = api.fetch_installations()
 
         # Verify that we got all expected installations.
-        self.assertEqual("aaaa-aaa-aaaa", installations["Installation A (north)"])
-        self.assertEqual("bbbb-bbb-bbbb", installations["Installation B (west)"])
-        self.assertEqual(2, len(installations))
+        assert "aaaa-aaa-aaaa" == installations["Installation A (north)"]
+        assert "bbbb-bbb-bbbb" == installations["Installation B (west)"]
+        assert 2 == len(installations)
 
     @responses.activate
     def test_installation_report(self):
@@ -148,4 +145,4 @@ class TestAPI(unittest.TestCase):
         report = api.fetch_installation_report(INSTALLATION_ID, "2024-12-01T00:00:00", "2025-01-01T00:00:00")
 
         # Sanity check that we got the JSON response back.
-        self.assertEqual("Installation A (north)", report["InstallationName"])
+        assert "Installation A (north)" == report["InstallationName"]

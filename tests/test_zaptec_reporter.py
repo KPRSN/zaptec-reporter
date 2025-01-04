@@ -1,29 +1,29 @@
-import unittest
+import pytest
 import responses
 from datetime import datetime
 
 import zaptec_reporter as zap
 
 
-class TestParseDateArg(unittest.TestCase):
+class TestParseDateArg:
     def test_year(self):
-        self.assertEqual(datetime.fromisoformat("2024-01-01"), zap.parse_date_arg("2024"))
+        assert datetime.fromisoformat("2024-01-01"), zap.parse_date_arg("2024")
 
     def test_month(self):
-        self.assertEqual(datetime.fromisoformat("2024-05-01"), zap.parse_date_arg("2024-5"))
+        assert datetime.fromisoformat("2024-05-01"), zap.parse_date_arg("2024-5")
 
     def test_day(self):
-        self.assertEqual(datetime.fromisoformat("2024-05-30"), zap.parse_date_arg("2024-5-30"))
+        assert datetime.fromisoformat("2024-05-30"), zap.parse_date_arg("2024-5-30")
 
     def test_year_relative(self):
-        self.assertEqual(datetime(datetime.now().year - 1, 1, 1), zap.parse_date_arg("last year"))
+        assert datetime(datetime.now().year - 1, 1, 1) == zap.parse_date_arg("last year")
 
     def test_value_error(self):
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             zap.parse_date_arg("zap")
 
 
-class TestReporter(unittest.TestCase):
+class TestReporter:
     @responses.activate
     def test_generate_usage_report(self):
         ACCESS_TOKEN = "blablaiamatokenblablabla"

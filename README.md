@@ -8,6 +8,7 @@ Makes exporting charge reports into a breeze:
 - Number of charging sessions. 💯
 - Total duration of charging sessions. 🕰️
 - Aggregates usage from one or more installations into a single Excel document. 🧮
+- Sends usage report emails. 💌
 
 ## Usage
 

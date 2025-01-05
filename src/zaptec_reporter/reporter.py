@@ -5,9 +5,83 @@ import logging
 import pandas as pd
 import pathlib
 import sys
+import yaml
+import jinja2 as jinja
+import smtplib
 from datetime import datetime
+from email_validator import validate_email
+from email.message import EmailMessage
+from enum import StrEnum
 
 from zaptec_reporter import api as zapi
+
+
+class EmailEncryption(StrEnum):
+    DISABLED = "disabled"
+    EXPLICIT = "explicit"
+    IMPLICIT = "implicit"
+
+
+class Email:
+    def __init__(
+        self,
+        server_address,
+        server_port,
+        encryption,
+        username,
+        password,
+        subject,
+        from_email,
+        to_emails,
+        text,
+        html,
+        filename,
+    ):
+        self.server_address = server_address
+        self.server_port = server_port
+        self.encryption = encryption
+        self.username = username
+        self.password = password
+        self.from_email = from_email
+        self.to_emails = to_emails
+        self.subject = subject
+        self.text = text
+        self.html = html
+        self.filename = filename
+
+    def send(self, values, buffer):
+        msg = EmailMessage()
+        msg["Subject"] = jinja.Template(self.subject).render(values)
+        msg["From"] = self.from_email
+        msg["To"] = ", ".join(self.to_emails)
+
+        # Add body.
+        if self.text is not None:
+            msg.set_content(jinja.Template(self.text).render(values))
+
+        if self.html is not None:
+            msg.add_alternative(jinja.Template(self.html).render(values), subtype="html")
+
+        # Add charge report attachment.
+        msg.add_attachment(
+            buffer.getbuffer().tobytes(),
+            maintype="application",
+            subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            filename=jinja.Template(self.filename).render(values),
+        )
+
+        # Send using the perfect level of encryption.
+        if self.encryption == EmailEncryption.IMPLICIT:
+            with smtplib.SMTP_SSL(host=self.server_address, port=self.server_port) as server:
+                server.login(self.username, self.password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(host=self.server_address, port=self.server_port) as server:
+                if self.encryption == EmailEncryption.EXPLICIT:
+                    server.starttls()
+
+                server.login(self.username, self.password)
+                server.send_message(msg)
 
 
 def parse_date_arg(date):
@@ -83,6 +157,66 @@ def generate_usage_report(api, installation_ids, date_from, date_to, group_by=za
     return buffer
 
 
+def report(api, installations, from_date, to_date, excel_path, email):
+    buffer = generate_usage_report(api, installations, from_date, to_date)
+
+    if excel_path is not None:
+        # Write usage report to file.
+        pathlib.Path(excel_path).write_bytes(buffer.getbuffer().tobytes())
+
+    if email is not None:
+        email.send({"from_date": from_date, "to_date": to_date}, buffer)
+
+
+def parse_email_config(email_path):
+    # Read email config yaml file.
+    with open(email_path, "r") as f:
+        config = yaml.load(f, Loader=yaml.Loader)
+
+    # Validate that server configuration is set.
+    server_config = config["server"]
+    server_address = server_config["address"]
+    server_port = server_config["port"]
+    username = server_config["username"]
+    password = server_config["password"]
+
+    # Validate and parse encryption.
+    encryption = EmailEncryption(server_config["encryption"])
+
+    # Validate source email.
+    from_email = config["from"]
+    validate_email(from_email, check_deliverability=False)
+
+    # Validate destination email(s).
+    to_emails = config["to"] if isinstance(config["to"], list) else [config["to"]]
+    for email in to_emails:
+        validate_email(email, check_deliverability=False)
+
+    # Validate that subject and filename is set.
+    subject = config["subject"]
+    filename = config["filename"]
+
+    # A brief body check.
+    text = config.get("text", None)
+    html = config.get("html", None)
+    if text is None and html is None:
+        logging.WARNING("Email template does not contain a body.")
+
+    return Email(
+        server_address,
+        server_port,
+        encryption,
+        username,
+        password,
+        subject,
+        from_email,
+        to_emails,
+        text,
+        html,
+        filename,
+    )
+
+
 def main(argv=sys.argv[1:]) -> None:
     # Setup argument parser.
     parser = argparse.ArgumentParser(description="Generate usage reports from Zaptec chargers.")
@@ -124,7 +258,8 @@ def main(argv=sys.argv[1:]) -> None:
         type=parse_date_arg,
         default=parse_date_arg("this month"),
     )
-    parser_report.add_argument("-x", "--excelout", help="Excel output file.", required=True)
+    parser_report.add_argument("-x", "--excelout", help="Excel output file.")
+    parser_report.add_argument("-e", "--email", help="Email YAML configuration file.")
     parser_report.add_argument(
         "installations",
         help="IDs for the installations to collect usage from.",
@@ -141,6 +276,10 @@ def main(argv=sys.argv[1:]) -> None:
         format="[%(asctime)s %(levelname)s] %(message)s",
     )
 
+    # Parse email configuration.
+    if args.email is not None:
+        email = parse_email_config(args.email)
+
     # Initialize API (and authorize if needed).
     api = zapi.ZaptecAPI(args.password)
     if args.username is not None:
@@ -150,5 +289,4 @@ def main(argv=sys.argv[1:]) -> None:
     if "installations" == args.action:
         logging.info(api.fetch_installations())
     elif "report" == args.action:
-        buffer = generate_usage_report(api, args.installations, args.from_date, args.to_date)
-        pathlib.Path(args.excelout).write_bytes(buffer.getbuffer().tobytes())
+        report(api, args.installations, args.from_date, args.to_date, args.excelout, email)

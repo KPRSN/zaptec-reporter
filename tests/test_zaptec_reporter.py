@@ -2,7 +2,9 @@ import openpyxl
 import os
 import pytest
 import responses
+import yaml
 from datetime import datetime
+from unittest.mock import patch
 
 
 import zaptec_reporter as zap
@@ -35,10 +37,12 @@ class TestReporter:
         yield fs
 
     @responses.activate
-    def test_generate_usage_report(self, fs):
+    @patch("zaptec_reporter.reporter.smtplib.SMTP")
+    def test_generate_usage_report(self, mock_smtp, fs):
         ACCESS_TOKEN = "blablaiamatokenblablabla"
         INSTALLATION_IDS = ["aaaa-aaa-aaaa", "bbbb-bbb-bbbb"]
         FILEPATH = "/tmp/report.xlsx"
+        EMAIL_FILEPATH = "/tmp/email_config.yml"
 
         # First request/response.
         response_json = {
@@ -112,10 +116,45 @@ class TestReporter:
             ],
         )
 
+        # Prepare email configuration file.
+        with open(EMAIL_FILEPATH, "w") as f:
+            html = (
+                '<html lang="en">'
+                "  <head>"
+                "    <title>Charge report</title>"
+                "  </head>"
+                "  <body>"
+                "    <p>"
+                '      See the attached Zaptec charge report for {{ from_date.strftime("%Y-%m-%d") }}.'
+                "    </p>"
+                "  </body>"
+                "</html>"
+            )
+            yaml.dump(
+                {
+                    "server": {
+                        "address": "localhost",
+                        "username": "nikola",
+                        "password": "Zaptec!23",
+                        "port": 2525,
+                        "encryption": "disabled",
+                    },
+                    "subject": "Zaptec charge report for {{ from_date.strftime('%Y-%m')}}",
+                    "filename": "charger_report_{{ from_date.strftime('%Y_%m')}}",
+                    "from": "nikola.tesla@mail.com",
+                    "to": ["thomas.edison@mail.com", "joseph.swan@mail.com"],
+                    "text": "See the attached Zaptec charge report covering {{ from_date.strftime('%Y-%m-%d') }} "
+                    "to {{ to_date.strftime('%Y-%m-%d')}}.",
+                    "html": html,
+                },
+                f,
+            )
+
         # Trigger request.
         zap.main(
             (
-                f"-p {ACCESS_TOKEN} report -x {FILEPATH} --from-date 2024-12-01 --to-date 2025-01-01 "
+                f"-v -p {ACCESS_TOKEN} report -x {FILEPATH} -e {EMAIL_FILEPATH} "
+                f"--from-date 2024-12-01 --to-date 2025-01-01 "
                 f"{INSTALLATION_IDS[0]} {INSTALLATION_IDS[1]}"
             ).split()
         )
@@ -141,3 +180,13 @@ class TestReporter:
         assert worksheet["C8"].value == "0 days 10:30:00"
         assert worksheet["D8"].value == 2
         assert worksheet["E8"].value == "Installation B (west)"
+
+        # Verify that an email was sent.
+        # Note that printing mock calls may help debugging: print(mock_smtp.mock_calls)
+        assert mock_smtp.return_value.__enter__.return_value.send_message.call_count == 1
+
+        # Verify some of the email contents.
+        sent_msg = mock_smtp.return_value.__enter__.return_value.send_message.call_args.args[0]
+        assert sent_msg["Subject"] == "Zaptec charge report for 2024-12"
+        assert sent_msg["From"] == "nikola.tesla@mail.com"
+        assert sent_msg["To"] == "thomas.edison@mail.com, joseph.swan@mail.com"

@@ -1,0 +1,41 @@
+server:
+  address: localhost
+  username: nikola.tesla@mail.com
+  password: Zaptec!23
+  port: 587
+  encryption: explicit # 'disabled' to disable encryption.
+                       # 'explicit' uses STARTTLS to upgrade to an encrypted connection (usually on port 587).
+                       # 'implicit' forces encryption (usually on port 465).
+
+subject: Zaptec charge report for {{ from_date.strftime('%Y-%m') }}
+filename: charger_report_{{ from_date.strftime('%Y_%m') }}
+from: nikola.tesla@mail.com
+to:
+  - thomas.edison@mail.com
+  - joseph.swan@mail.com
+
+text: |
+  Hello,
+
+  See the attached Zaptec charge report covering {{ from_date.strftime('%Y-%m-%d') }} to {{ to_date.strftime('%Y-%m-%d') }}.
+
+  Zap,
+  Per Automation
+
+html: >
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <title>Charge report {{ from_date.strftime('%Y-%m-%d') }}</title>
+  </head>
+  <body>
+      <p>
+        Hello,<br><br>
+
+        See the attached Zaptec charge report covering {{ from_date.strftime('%Y-%m-%d') }} to {{ to_date.strftime('%Y-%m-%d') }}.<br><br>
+
+        Zap,<br>
+        Per Automation
+      </p
+  </body>
+  </html>

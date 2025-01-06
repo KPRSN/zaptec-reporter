@@ -148,7 +148,7 @@ def generate_usage_report(api, installation_ids, date_from, date_to, group_by=za
             sheet_name=sheet_name,
             startrow=len(df_meta) + 1,
             index=False,
-            float_format="%0.1f",
+            float_format="%.2f",
         )
 
         # Autofit columns.

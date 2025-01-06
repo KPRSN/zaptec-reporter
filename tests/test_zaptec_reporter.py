@@ -179,7 +179,7 @@ class TestReporter:
         assert worksheet["E7"].value == "Installation A (north)"
 
         assert worksheet["A8"].value == "VP1"
-        assert worksheet["B8"].value == 43.1
+        assert worksheet["B8"].value == 43.11
         assert worksheet["C8"].value == "0 days 10:30:00"
         assert worksheet["D8"].value == 2
         assert worksheet["E8"].value == "Installation B (west)"

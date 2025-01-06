@@ -11,6 +11,7 @@ import smtplib
 from datetime import datetime
 from email_validator import validate_email
 from email.message import EmailMessage
+from email.utils import formataddr
 from enum import StrEnum
 
 from zaptec_reporter import api as zapi
@@ -52,7 +53,7 @@ class Email:
     def send(self, values, buffer):
         msg = EmailMessage()
         msg["Subject"] = jinja.Template(self.subject).render(values)
-        msg["From"] = self.from_email
+        msg["From"] = formataddr(self.from_email)
         msg["To"] = ", ".join(self.to_emails)
 
         # Add body.
@@ -184,7 +185,8 @@ def parse_email_config(email_path):
     encryption = EmailEncryption(server_config["encryption"])
 
     # Validate source email.
-    from_email = config["from"]
+    from_name = config["from"]["name"]
+    from_email = config["from"]["address"]
     validate_email(from_email, check_deliverability=False)
 
     # Validate destination email(s).
@@ -209,7 +211,7 @@ def parse_email_config(email_path):
         username,
         password,
         subject,
-        from_email,
+        (from_name, from_email),
         to_emails,
         text,
         html,

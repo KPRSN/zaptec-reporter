@@ -141,7 +141,10 @@ class TestReporter:
                     },
                     "subject": "Zaptec charge report for {{ from_date.strftime('%Y-%m')}}",
                     "filename": "charger_report_{{ from_date.strftime('%Y_%m')}}",
-                    "from": "nikola.tesla@mail.com",
+                    "from": {
+                        "name": "Zaptec Reporter",
+                        "address": "nikola.tesla@mail.com",
+                    },
                     "to": ["thomas.edison@mail.com", "joseph.swan@mail.com"],
                     "text": "See the attached Zaptec charge report covering {{ from_date.strftime('%Y-%m-%d') }} "
                     "to {{ to_date.strftime('%Y-%m-%d')}}.",
@@ -188,5 +191,5 @@ class TestReporter:
         # Verify some of the email contents.
         sent_msg = mock_smtp.return_value.__enter__.return_value.send_message.call_args.args[0]
         assert sent_msg["Subject"] == "Zaptec charge report for 2024-12"
-        assert sent_msg["From"] == "nikola.tesla@mail.com"
+        assert sent_msg["From"] == "Zaptec Reporter <nikola.tesla@mail.com>"
         assert sent_msg["To"] == "thomas.edison@mail.com, joseph.swan@mail.com"

@@ -9,7 +9,11 @@ server:
 
 subject: Zaptec charge report for {{ from_date.strftime('%Y-%m') }}
 filename: charger_report_{{ from_date.strftime('%Y_%m') }}
-from: nikola.tesla@mail.com
+
+from:
+  name: Zaptec Reporter
+  address: nikola.tesla@mail.com
+
 to:
   - thomas.edison@mail.com
   - joseph.swan@mail.com

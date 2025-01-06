@@ -104,46 +104,15 @@ def parse_date_arg(date):
     return date_obj
 
 
-def generate_usage_report(api, installation_ids, date_from, date_to, group_by=zapi.InstallationGroupBy.CHARGER):
-    installation_reports = [
-        api.fetch_installation_report(installation_id, date_from.isoformat(), date_to.isoformat())
-        for installation_id in installation_ids
-    ]
-
-    # Aggregate usage data in human readable format.
-    data = []
-    for report in installation_reports:
-        for entry in report["totalUserChargerReportModel"]:
-            data.append(
-                {
-                    report["GroupedBy"]: entry["GroupAsString"],
-                    "Energy": entry["TotalChargeSessionEnergy"],
-                    "Duration": str(pd.Timedelta(hours=entry["TotalChargeSessionDuration"]).round("s")),
-                    "Sessions": entry["TotalChargeSessionCount"],
-                    "Installation": report["InstallationName"],
-                }
-            )
-
-    # Convert usage data to a data frame.
-    df = pd.DataFrame(data)
-
-    # Create a data frame with metadata.
-    report = installation_reports[0]
-    df_meta = pd.DataFrame(
-        [
-            ("Generated", datetime.now()),
-            ("From", datetime.fromisoformat(report["Fromdate"])),
-            ("To", datetime.fromisoformat(report["Enddate"])),
-            ("Timezone", report["InstallationTimeZone"]),
-        ]
-    )
-
-    # Write usage report as Excel data to an in-memory buffer.
+def create_excel_usage_report(data):
     sheet_name = "Report"
+    df_usage = pd.DataFrame(data["Usage"])
+    df_meta = pd.DataFrame([(key, value) for key, value in data["Metadata"].items()])
+
     buffer = io.BytesIO()
     with pd.ExcelWriter(buffer, engine="xlsxwriter", datetime_format="yyyy-mm-dd hh:mm:ss") as writer:
         df_meta.to_excel(writer, sheet_name=sheet_name, index=False, header=False)
-        df.to_excel(
+        df_usage.to_excel(
             writer,
             sheet_name=sheet_name,
             startrow=len(df_meta) + 1,
@@ -158,8 +127,42 @@ def generate_usage_report(api, installation_ids, date_from, date_to, group_by=za
     return buffer
 
 
+def fetch_usage_data(api, installation_ids, date_from, date_to, group_by=zapi.InstallationGroupBy.CHARGER):
+    # Fetch reports from all installations.
+    installation_reports = [
+        api.fetch_installation_report(installation_id, date_from.isoformat(), date_to.isoformat())
+        for installation_id in installation_ids
+    ]
+
+    # Aggregate usage data in human readable format.
+    usage = []
+    for report in installation_reports:
+        for entry in report["totalUserChargerReportModel"]:
+            usage.append(
+                {
+                    report["GroupedBy"]: entry["GroupAsString"],
+                    "Energy": entry["TotalChargeSessionEnergy"],
+                    "Duration": str(pd.Timedelta(hours=entry["TotalChargeSessionDuration"]).round("s")),
+                    "Sessions": entry["TotalChargeSessionCount"],
+                    "Installation": report["InstallationName"],
+                }
+            )
+
+    # Assemble metadata.
+    report = installation_reports[0]
+    metadata = {
+        "Generated": datetime.now(),
+        "From": datetime.fromisoformat(report["Fromdate"]),
+        "To": datetime.fromisoformat(report["Enddate"]),
+        "Timezone": report["InstallationTimeZone"],
+    }
+
+    return {"Usage": usage, "Metadata": metadata}
+
+
 def report(api, installations, from_date, to_date, excel_path, email):
-    buffer = generate_usage_report(api, installations, from_date, to_date)
+    usage_data = fetch_usage_data(api, installations, from_date, to_date)
+    buffer = create_excel_usage_report(usage_data)
 
     if excel_path is not None:
         # Write usage report to file.

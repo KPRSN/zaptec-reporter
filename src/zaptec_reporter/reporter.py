@@ -169,7 +169,7 @@ def report(api, installations, from_date, to_date, excel_path, email):
         pathlib.Path(excel_path).write_bytes(buffer.getbuffer().tobytes())
 
     if email is not None:
-        email.send({"from_date": from_date, "to_date": to_date}, buffer)
+        email.send(usage_data, buffer)
 
 
 def parse_email_config(email_path):

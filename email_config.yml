@@ -7,8 +7,8 @@ server:
                        # 'explicit' uses STARTTLS to upgrade to an encrypted connection (usually on port 587).
                        # 'implicit' forces encryption (usually on port 465).
 
-subject: Zaptec charge report for {{ from_date.strftime('%Y-%m') }}
-filename: charger_report_{{ from_date.strftime('%Y_%m') }}
+subject: Zaptec charge report for {{ Metadata.From.strftime('%Y-%m') }}
+filename: charger_report_{{ Metadata.From.strftime('%Y_%m') }}
 
 from:
   name: Zaptec Reporter
@@ -21,7 +21,7 @@ to:
 text: |
   Hello,
 
-  See the attached Zaptec charge report covering {{ from_date.strftime('%Y-%m-%d') }} to {{ to_date.strftime('%Y-%m-%d') }}.
+  See the attached Zaptec charge report covering {{ Metadata.From.strftime('%Y-%m-%d') }} to {{ Metadata.To.strftime('%Y-%m-%d') }}.
 
   Zap,
   Per Automation
@@ -30,13 +30,46 @@ html: >
   <!DOCTYPE html>
   <html lang="en">
   <head>
-      <title>Charge report {{ from_date.strftime('%Y-%m-%d') }}</title>
+      <title>Charge report {{ Metadata.From.strftime('%Y-%m-%d') }}</title>
+      <style>
+        table {
+          border-collapse: collapse;
+        }
+        th, td {
+          text-align: left;
+          padding: 5px;
+        }
+        tr:nth-child(even) {
+          background-color: #F2F2F2;
+        }
+        th {
+          background-color: #04AA6D;
+          color: white;
+        }
+      </style>
   </head>
   <body>
       <p>
         Hello,<br><br>
 
-        See the attached Zaptec charge report covering {{ from_date.strftime('%Y-%m-%d') }} to {{ to_date.strftime('%Y-%m-%d') }}.<br><br>
+        See the attached Zaptec charge report covering {{ Metadata.From.strftime('%Y-%m-%d') }} to {{ Metadata.To.strftime('%Y-%m-%d') }}.<br>
+
+        <table>
+          <tbody><tr>
+            <th scope="col">Charger</th>
+            <th scope="col">Energy (kWh)</th>
+          </tr></tbody>
+          <tbody>
+            {% for item in Usage %}
+            <tr>
+              <td><b>{{ item.Charger }}</b></td>
+              <td>{{ item.Energy|round(2) }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <br>
 
         Zap,<br>
         Per Automation

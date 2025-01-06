@@ -122,11 +122,41 @@ class TestReporter:
                 '<html lang="en">'
                 "  <head>"
                 "    <title>Charge report</title>"
+                "    <style>"
+                "      table {"
+                "        border-collapse: collapse;"
+                "      }"
+                "      th, td {"
+                "        text-align: left;"
+                "        padding: 8px;"
+                "      }"
+                "      tr:nth-child(even) {"
+                "        background-color: #F2F2F2;"
+                "      }"
+                "      th {"
+                "        background-color: #04AA6D;"
+                "        color: white;"
+                "      }"
+                "    </style>"
                 "  </head>"
                 "  <body>"
                 "    <p>"
-                '      See the attached Zaptec charge report for {{ from_date.strftime("%Y-%m-%d") }}.'
+                '      See the attached Zaptec charge report for {{ Metadata.From.strftime("%Y-%m-%d") }}.'
                 "    </p>"
+                "    <table>"
+                "      <tbody><tr>"
+                '      <th scope="col">Charger</th>'
+                '      <th scope="col">Energy (kWh)</th>'
+                "      </tr></tbody>"
+                "      <tbody>"
+                "      {% for item in Usage %}"
+                "      <tr>"
+                "        <td><b>{{ item.Charger }}</b></td>"
+                "        <td>{{ item.Energy|round(2) }}</td>"
+                "      </tr>"
+                "      {% endfor %}"
+                "      </tbody>"
+                "    </table>"
                 "  </body>"
                 "</html>"
             )
@@ -139,15 +169,15 @@ class TestReporter:
                         "port": 2525,
                         "encryption": "disabled",
                     },
-                    "subject": "Zaptec charge report for {{ from_date.strftime('%Y-%m')}}",
-                    "filename": "charger_report_{{ from_date.strftime('%Y_%m')}}",
+                    "subject": "Zaptec charge report for {{ Metadata.From.strftime('%Y-%m')}}",
+                    "filename": "charger_report_{{ Metadata.From.strftime('%Y_%m')}}",
                     "from": {
                         "name": "Zaptec Reporter",
                         "address": "nikola.tesla@mail.com",
                     },
                     "to": ["thomas.edison@mail.com", "joseph.swan@mail.com"],
-                    "text": "See the attached Zaptec charge report covering {{ from_date.strftime('%Y-%m-%d') }} "
-                    "to {{ to_date.strftime('%Y-%m-%d')}}.",
+                    "text": "See the attached Zaptec charge report covering {{ Metadata.From.strftime('%Y-%m-%d') }} "
+                    "to {{ Metadata.To.strftime('%Y-%m-%d')}}.",
                     "html": html,
                 },
                 f,

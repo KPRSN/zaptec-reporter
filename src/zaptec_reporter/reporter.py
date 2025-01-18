@@ -236,6 +236,7 @@ def main(argv=sys.argv[1:]) -> None:
         const=logging.DEBUG,
         default=logging.INFO,
     )
+    parser.add_argument("-d", "--dry-run", help="Print command arguments to log.", action="store_true")
     parser.add_argument("-u", "--username", help="Username to access Zaptec Cloud.")
     parser.add_argument(
         "-p",
@@ -280,6 +281,12 @@ def main(argv=sys.argv[1:]) -> None:
         level=args.verbose,
         format="[%(asctime)s %(levelname)s] %(message)s",
     )
+
+    # Dry run.
+    if args.dry_run:
+        logging.info(sys.argv)
+        logging.debug(args)
+        sys.exit(0)
 
     # Parse email configuration.
     if args.email is not None:

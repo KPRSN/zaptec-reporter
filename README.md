@@ -18,6 +18,12 @@ Make sure that you have the Python package and project manager [`uv`](https://gi
 uv run zaptec-reporter
 ```
 
+Or perhaps the containerized zaptec-reporter in Docker:
+
+```bash
+docker run kprsn/zaptec-reporter
+```
+
 ## Development
 
 To execute Python unittests run:
@@ -31,4 +37,10 @@ To format and check the Python code using [`ruff`](https://github.com/astral-sh/
 ```bash
 uv run ruff format
 uv run ruff check
+```
+
+To build Docker image:
+
+```bash
+docker build -t kprsn/zaptec-reporter
 ```

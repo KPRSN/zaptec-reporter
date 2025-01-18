@@ -1,4 +1,5 @@
 services:
+  # Either generate and send a report immediately...
   zaptec-reporter:
     image: "kprsn/zaptec-reporter:latest"
     build: .
@@ -17,3 +18,26 @@ services:
       - "INSTALLATION_ID_1"
       - "INSTALLATION_ID_2"
 
+
+  # ...or schedule to send a monthly report at 07:00 on the first day of the month using Ofelia.
+  ofelia:
+    image: mcuadros/ofelia:latest
+    command: daemon --docker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    labels:
+      ofelia.job-run.zaptec-reporter-monthly.schedule: "0 0 7 1 * *"
+      ofelia.job-run.zaptec-reporter-monthly.image: "kprsn/zaptec-reporter:latest"
+      ofelia.job-run.zaptec-reporter-monthly.volume: >
+        ["/home/user/zaptec-reporter/config:/config:ro", "/home/user/zaptec-reporter/data:/data"]
+      ofelia.job-run.zaptec-reporter-monthly.command: >
+        -v
+        --username "MYUSERNAME"
+        --password "MYPASSWORD"
+        report
+        --excelout /data/report.xlsx
+        --email /config/email_config.yml
+        --from-date "last month"
+        --to-date "this month"
+        INSTALLATION_ID_1
+        INSTALLATION_ID_2

@@ -72,6 +72,7 @@ class Email:
         )
 
         # Send using the perfect level of encryption.
+        logging.info(f"Sending email to {len(self.to_emails)} recipients.")
         if self.encryption == EmailEncryption.IMPLICIT:
             with smtplib.SMTP_SSL(host=self.server_address, port=self.server_port) as server:
                 server.login(self.username, self.password)
@@ -91,7 +92,7 @@ def parse_date_arg(date):
     date_obj = date_data.date_obj
 
     if date_obj is None:
-        raise ValueError("{date} is not a valid date.")
+        raise ValueError(f"{date} is not a valid date.")
 
     # Truncate specified date down to beginning of period.
     if date_data.period == "year":
@@ -166,6 +167,7 @@ def report(api, installations, from_date, to_date, excel_path, email):
 
     if excel_path is not None:
         # Write usage report to file.
+        logging.info(f"Writing usage report to file {excel_path}.")
         pathlib.Path(excel_path).write_bytes(buffer.getbuffer().tobytes())
 
     if email is not None:
@@ -205,7 +207,7 @@ def parse_email_config(email_path):
     text = config.get("text", None)
     html = config.get("html", None)
     if text is None and html is None:
-        logging.WARNING("Email template does not contain a body.")
+        logging.warning("Email template does not contain a body.")
 
     return Email(
         server_address,

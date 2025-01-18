@@ -42,6 +42,7 @@ class ZaptecAPI:
         AUTH_URL = "https://api.zaptec.com/oauth/token"
 
         # Authorize.
+        logging.info(f"Authorizing user {username}.")
         response = requests.post(
             AUTH_URL,
             data={"grant_type": "password", "username": username, "password": password},
@@ -67,6 +68,7 @@ class ZaptecAPI:
             "IncludeDisabled": str(include_disabled).lower(),
         }
 
+        logging.info("Fetching installations.")
         response = requests.get(
             INSTALLATIONS_URL,
             headers={"Authorization": self.auth_header()},
@@ -94,6 +96,7 @@ class ZaptecAPI:
 
         logging.debug(json)
 
+        logging.info(f"Fetching installation report for {installation_id}.")
         response = requests.post(
             INSTALLATION_REPORT_URL,
             headers={"Authorization": self.auth_header()},

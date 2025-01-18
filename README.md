@@ -21,7 +21,11 @@ uv run zaptec-reporter
 Or perhaps the containerized zaptec-reporter in Docker:
 
 ```bash
+# Vanilla Docker.
 docker run kprsn/zaptec-reporter
+
+# Docker compose.
+docker compose up zaptec-reporter
 ```
 
 ## Development

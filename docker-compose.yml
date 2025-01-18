@@ -1,0 +1,19 @@
+services:
+  zaptec-reporter:
+    image: "kprsn/zaptec-reporter:latest"
+    build: .
+    volumes:
+      - "./:/config:ro"
+      - "./data/:/data"
+    command:
+      - "-v"
+      - "--username=MYUSERNAME"
+      - "--password=MYPASSWORD"
+      - "report"
+      - "--excelout=/data/report.xlsx"
+      - "--email=/config/email_config.yml"
+      - "--from-date=last month"
+      - "--to-date=this month"
+      - "INSTALLATION_ID_1"
+      - "INSTALLATION_ID_2"
+

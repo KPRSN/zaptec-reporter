@@ -37,10 +37,8 @@ html: >
         }
         th, td {
           text-align: left;
-          padding: 5px;
-        }
-        tr:nth-child(even) {
-          background-color: #F2F2F2;
+          padding: 8px;
+          border-bottom: 1px solid #ddd;
         }
         th {
           background-color: #04AA6D;

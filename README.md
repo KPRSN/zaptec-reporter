@@ -48,3 +48,15 @@ To build Docker image:
 ```bash
 docker build -t kprsn/zaptec-reporter
 ```
+
+## Bonus material
+
+To work with Github Actions locally using [`act`](https://github.com/nektos/act) and [`zizmor`](https://github.com/woodruffw/zizmor?tab=readme-ov-file):
+
+```bash
+# To run actions locally using Act.
+act -j test -s GITHUB_TOKEN="$(gh auth token)"
+
+# To run static analysis using Zizmor.
+zizmor .
+```

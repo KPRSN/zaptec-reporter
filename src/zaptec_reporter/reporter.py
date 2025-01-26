@@ -284,15 +284,15 @@ def main(argv=sys.argv[1:]) -> None:
         format="[%(asctime)s %(levelname)s] %(message)s",
     )
 
+    # Parse email configuration.
+    if args.email is not None:
+        email = parse_email_config(args.email)
+
     # Dry run.
     if args.dry_run:
         logging.info(sys.argv)
         logging.debug(args)
         sys.exit(0)
-
-    # Parse email configuration.
-    if args.email is not None:
-        email = parse_email_config(args.email)
 
     # Initialize API (and authorize if needed).
     api = zapi.ZaptecAPI(args.password)

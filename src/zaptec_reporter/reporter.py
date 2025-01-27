@@ -167,8 +167,9 @@ def report(api, installations, from_date, to_date, excel_path, email):
 
     if excel_path is not None:
         # Write usage report to file.
-        logging.info(f"Writing usage report to file {excel_path}.")
-        pathlib.Path(excel_path).write_bytes(buffer.getbuffer().tobytes())
+        path = jinja.Template(excel_path).render(usage_data)
+        logging.info(f"Writing usage report to file {path}.")
+        pathlib.Path(path).write_bytes(buffer.getbuffer().tobytes())
 
     if email is not None:
         email.send(usage_data, buffer)

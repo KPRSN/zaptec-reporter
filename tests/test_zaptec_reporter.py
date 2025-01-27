@@ -41,7 +41,7 @@ class TestReporter:
     def test_generate_usage_report(self, mock_smtp, fs):
         ACCESS_TOKEN = "blablaiamatokenblablabla"
         INSTALLATION_IDS = ["aaaa-aaa-aaaa", "bbbb-bbb-bbbb"]
-        FILEPATH = "/tmp/report.xlsx"
+        FILEPATH = "/tmp/report_2024_12.xlsx"
         EMAIL_FILEPATH = "/tmp/email_config.yml"
 
         # First request/response.
@@ -175,16 +175,17 @@ class TestReporter:
                     },
                     "to": ["thomas.edison@mail.com", "joseph.swan@mail.com"],
                     "text": "See the attached Zaptec charge report covering {{ Metadata.From.strftime('%Y-%m-%d') }} "
-                    "to {{ Metadata.To.strftime('%Y-%m-%d')}}.",
+                    "to {{ Metadata.To.strftime('%Y-%m-%d') }}.",
                     "html": html,
                 },
                 f,
             )
 
         # Trigger request.
+        filepath = "/tmp/report_{{Metadata.From.strftime('%Y_%m')}}.xlsx"
         zap.main(
             (
-                f"-v -p {ACCESS_TOKEN} report -x {FILEPATH} -e {EMAIL_FILEPATH} "
+                f"-v -p {ACCESS_TOKEN} report -x {filepath} -e {EMAIL_FILEPATH} "
                 f"--from-date 2024-12-01 --to-date 2025-01-01 "
                 f"{INSTALLATION_IDS[0]} {INSTALLATION_IDS[1]}"
             ).split()

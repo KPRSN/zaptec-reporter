@@ -168,7 +168,7 @@ class TestReporter:
                         "encryption": "disabled",
                     },
                     "subject": "Zaptec charge report for {{ Metadata.From.strftime('%Y-%m')}}",
-                    "filename": "charger_report_{{ Metadata.From.strftime('%Y_%m')}}",
+                    "filename": "charger_report_{{ Metadata.From.strftime('%Y_%m')}}.xlsx",
                     "from": {
                         "name": "Zaptec Reporter",
                         "address": "nikola.tesla@mail.com",

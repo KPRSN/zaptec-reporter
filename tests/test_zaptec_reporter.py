@@ -174,6 +174,8 @@ class TestReporter:
                         "address": "nikola.tesla@mail.com",
                     },
                     "to": ["thomas.edison@mail.com", "joseph.swan@mail.com"],
+                    "cc": ["michael.faraday@mail.com", "benjamin.franklin@mail.com"],
+                    "bcc": "thales@mail.com",
                     "text": "See the attached Zaptec charge report covering {{ Metadata.From.strftime('%Y-%m-%d') }} "
                     "to {{ Metadata.To.strftime('%Y-%m-%d') }}.",
                     "html": html,

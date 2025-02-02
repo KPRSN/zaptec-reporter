@@ -33,10 +33,12 @@ class Email:
         password,
         subject,
         from_email,
-        to_emails,
-        text,
-        html,
-        filename,
+        text=None,
+        html=None,
+        filename=None,
+        to=list(),
+        cc=list(),
+        bcc=list(),
     ):
         self.server_address = server_address
         self.server_port = server_port
@@ -44,17 +46,28 @@ class Email:
         self.username = username
         self.password = password
         self.from_email = from_email
-        self.to_emails = to_emails
         self.subject = subject
         self.text = text
         self.html = html
         self.filename = filename
+        self.to = to
+        self.cc = cc
+        self.bcc = bcc
 
     def send(self, values, buffer):
         msg = EmailMessage()
         msg["Subject"] = jinja.Template(self.subject).render(values)
         msg["From"] = formataddr(self.from_email)
-        msg["To"] = ", ".join(self.to_emails)
+
+        # Add recipients.
+        if len(self.to) > 0:
+            msg["To"] = ", ".join(self.to)
+
+        if len(self.cc) > 0:
+            msg["Cc"] = ", ".join(self.cc)
+
+        if len(self.bcc) > 0:
+            msg["Bcc"] = ", ".join(self.bcc)
 
         # Add body.
         if self.text is not None:
@@ -64,15 +77,16 @@ class Email:
             msg.add_alternative(jinja.Template(self.html).render(values), subtype="html")
 
         # Add charge report attachment.
-        msg.add_attachment(
-            buffer.getbuffer().tobytes(),
-            maintype="application",
-            subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            filename=jinja.Template(self.filename).render(values),
-        )
+        if self.filename is not None:
+            msg.add_attachment(
+                buffer.getbuffer().tobytes(),
+                maintype="application",
+                subtype="vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                filename=jinja.Template(self.filename).render(values),
+            )
 
         # Send using the perfect level of encryption.
-        logging.info(f"Sending email to {len(self.to_emails)} recipients.")
+        logging.info(f"Sending email to {len(self.to) + len(self.cc) + len(self.bcc)} recipients.")
         if self.encryption == EmailEncryption.IMPLICIT:
             with smtplib.SMTP_SSL(host=self.server_address, port=self.server_port) as server:
                 server.login(self.username, self.password)
@@ -175,6 +189,17 @@ def report(api, installations, from_date, to_date, excel_path, email):
         email.send(usage_data, buffer)
 
 
+def parse_email_addresses(config, key):
+    if key not in config:
+        return list()
+
+    addresses = config[key] if isinstance(config[key], list) else [config[key]]
+    for email in addresses:
+        validate_email(email, check_deliverability=False)
+
+    return addresses
+
+
 def parse_email_config(email_path):
     # Read email config yaml file.
     with open(email_path, "r") as f:
@@ -195,10 +220,10 @@ def parse_email_config(email_path):
     from_email = config["from"]["address"]
     validate_email(from_email, check_deliverability=False)
 
-    # Validate destination email(s).
-    to_emails = config["to"] if isinstance(config["to"], list) else [config["to"]]
-    for email in to_emails:
-        validate_email(email, check_deliverability=False)
+    # Parse and validate destination email(s).
+    to = parse_email_addresses(config, "to")
+    cc = parse_email_addresses(config, "cc")
+    bcc = parse_email_addresses(config, "bcc")
 
     # Validate that subject and filename is set.
     subject = config["subject"]
@@ -218,10 +243,12 @@ def parse_email_config(email_path):
         password,
         subject,
         (from_name, from_email),
-        to_emails,
         text,
         html,
         filename,
+        to,
+        cc,
+        bcc,
     )
 
 

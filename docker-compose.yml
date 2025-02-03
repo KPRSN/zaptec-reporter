@@ -1,13 +1,14 @@
 services:
   # Either generate and send a report immediately...
   zaptec-reporter:
-    image: "kprsn/zaptec-reporter:latest"
+    image: "ghcr.io/kprsn/zaptec-reporter:latest"
     build: .
     volumes:
-      - "./:/config:ro"
+      - "./config:/config:ro"
       - "./data/:/data"
+    environment:
+      - TZ=Europe/Stockholm
     command:
-      - "-v"
       - "--username=MYUSERNAME"
       - "--password=MYPASSWORD"
       - "report"
@@ -25,11 +26,15 @@ services:
     command: daemon --docker
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - TZ=Europe/Stockholm
     labels:
       ofelia.job-run.zaptec-reporter-monthly.schedule: "0 0 7 1 * *"
-      ofelia.job-run.zaptec-reporter-monthly.image: "kprsn/zaptec-reporter:latest"
+      ofelia.job-run.zaptec-reporter-monthly.image: "ghcr.io/kprsn/zaptec-reporter:latest"
       ofelia.job-run.zaptec-reporter-monthly.volume: >
         ["/home/user/zaptec-reporter/config:/config:ro", "/home/user/zaptec-reporter/data:/data"]
+      ofelia.job-run.zaptec-reporter-monthly.environment: >
+        ["TZ=Europe/Stockholm"]
       ofelia.job-run.zaptec-reporter-monthly.command: >
         -v
         --username "MYUSERNAME"

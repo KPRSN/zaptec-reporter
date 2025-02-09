@@ -37,7 +37,7 @@ class TestReporter:
         yield fs
 
     @responses.activate
-    @patch("zaptec_reporter.reporter.smtplib.SMTP")
+    @patch("zaptec_reporter.reporter.zemail.smtplib.SMTP")
     def test_generate_usage_report(self, mock_smtp, fs):
         ACCESS_TOKEN = "blablaiamatokenblablabla"
         INSTALLATION_IDS = ["aaaa-aaa-aaaa", "bbbb-bbb-bbbb"]

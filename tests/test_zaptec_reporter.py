@@ -224,3 +224,5 @@ class TestReporter:
         assert sent_msg["Subject"] == "Zaptec charge report for 2024-12"
         assert sent_msg["From"] == "Zaptec Reporter <nikola.tesla@mail.com>"
         assert sent_msg["To"] == "thomas.edison@mail.com, joseph.swan@mail.com"
+        assert sent_msg["Cc"] == "michael.faraday@mail.com, benjamin.franklin@mail.com"
+        assert sent_msg["Bcc"] == "thales@mail.com"
